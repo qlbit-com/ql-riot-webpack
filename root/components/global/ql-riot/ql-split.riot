@@ -1,0 +1,137 @@
+<ql-split>
+  <script>
+    import { pure, __ as riotAPI } from 'riot'
+    import getProps from 'riot-pure-props';
+
+    export default pure( ( { attributes, slots, props } ) => ( {
+      mount( el, context ) {
+        this.props = getProps( el, context, attributes, props )
+        const orientIndex = undefined === this.props.row ? 0 : 1
+
+        const orient = [
+          { size : 'height', clientSize : 'clientHeight', axis : 'y' } ,
+          { size : 'width',  clientSize : 'clientWidth',  axis : 'x' }
+        ][ orientIndex ]
+
+        Object.assign( this, orient )
+        this.disableSelect = ( evt ) => { evt.preventDefault() }
+        this.thisDrag = ( evt ) => { this.drag( evt ) }
+        this.thisStopDrag = ( evt ) => { this.stopDrag( evt ) }
+
+        const cssClasses = {
+          '.split-col' : '{ display: flex !important; flex-direction: column !important; width: 100% !important; height: 100% !important }',
+          '.split-row' : '{ display: flex !important; flex-direction: row !important; width: 100% !important; height: 100% !important }',
+          '.split-col > div' : '{ position: relative !important; clear: both !important; overflow: auto !important; width : 100% !important }',
+          '.split-row > div' : '{ position: relative !important; clear: both !important; overflow: auto !important; height: 100% !important }',
+          '.split-col > div:nth-child(even)' : '{ background: lightgray; cursor: ns-resize !important; height: 5px !important }',
+          '.split-row > div:nth-child(even)' : '{ background: lightgray; cursor: ew-resize !important; width : 5px !important }'
+        }
+        const tag = 'ql-split'
+
+        const cssText = Object.entries( cssClasses ).reduce(
+          ( result, entry ) => result + tag + ' ' + entry[ 0 ] + ',[is="' + tag + '"]' + entry[ 0 ] + entry[ 1 ] , ''
+        )
+        riotAPI.cssManager.add( 'ql-split-css', cssText )
+
+        this.sizes = this.props.sizes || Array( slots.length ).fill( 100.0 / slots.length )
+        while( this.sizes.length < slots.length )
+          this.sizes.push( 0 )
+
+        this.sizes.length = slots.length  //DP: remove extra elements [if any] from sizes array
+
+        var sum = 0.0
+        this.sizes.forEach( val => sum += val );
+        if( !sum )
+          this.sizes.fill( 100.0 / slots.length )
+        else if( 100.0 != sum )
+          this.sizes.forEach( ( val, idx ) => this.sizes[ idx ] = ( val / sum ) * 100.0 )
+
+        this.el = el
+        const holder = document.createElement( 'div' )
+        const holderClass = [ 'split-col', 'split-row' ][ orientIndex ]
+        holder.classList.add( holderClass )
+        if( undefined!==this.el.content ) {
+          holder.setAttribute( 'is', tag ) //DP: for css to match in scope of template element
+          this.el.parentNode.insertBefore( holder, this.el )
+          this.el.parentNode.removeChild( this.el )
+        } else {
+          this.el.appendChild( holder )
+        }
+
+        this.templates = slots.flatMap( ( slot, slotIndex ) => {
+          const container = document.createElement( 'div' )
+          container.innerHTML = slot.html
+
+          const template = slot.bindings.map(
+            binding => riotAPI.DOMBindings.createBinding( container, binding )
+          );
+          container.style[ this.size ] = this.sizes[ slotIndex ] + '%'
+          holder.appendChild( container );
+          if( slotIndex + 1 < slots.length ) {
+            const gutter = document.createElement( 'div' )
+            gutter.onmousedown = ( evt ) => { this.dragStart( evt, slotIndex ) }
+            gutter.draggable = false
+            holder.appendChild( gutter )
+          }
+          return template
+        } );
+
+        this.templates.forEach(
+          template => template.mount( context )
+        );
+      },
+      update( context ) {
+        this.templates.forEach(
+          template => template.update( context )
+        )
+      },
+      switch( action ) {
+        const winListener = window[ action ]
+        winListener( 'selectstart', this.disableSelect )
+        winListener( 'mousemove', this.thisDrag )
+        winListener( 'touchmove', this.thisDrag )
+        winListener( 'mouseup', this.thisStopDrag )
+        winListener( 'touchend', this.thisStopDrag )
+        winListener( 'touchcancel', this.thisStopDrag )
+      },
+      dragStart( evt, idx ) {
+        if( this.dragTag )
+          return
+        this.dragTag = evt.target
+        this.dragIdx = idx
+        this.lastValue = evt[ this.axis ]
+        this.switch( 'addEventListener' )
+      },
+      drag( evt ) {
+        const prev = this.dragTag.previousElementSibling
+        const next = this.dragTag.nextElementSibling
+        const prevClientSize = prev[ this.clientSize ]
+        const nextClientSize = next[ this.clientSize ]
+        if( prevClientSize + nextClientSize < 1 ) { //DP: could happen after container resize
+          this.stopDrag()
+          return
+        }
+        const delta = evt[ this.axis ] - this.lastValue
+        const total = this.sizes[ this.dragIdx ] + this.sizes[ this.dragIdx + 1 ]
+        if( prevClientSize > nextClientSize ) {
+          var sz = this.sizes[ this.dragIdx ] * ( 1 + delta / prevClientSize )
+          if( sz < 0.01 )         sz = 0
+          if( sz > total - 0.01 ) sz = total
+          next.style[ this.size ] = ( this.sizes[ this.dragIdx + 1 ] += this.sizes[ this.dragIdx ] - sz ) + '%'
+          prev.style[ this.size ] = ( this.sizes[ this.dragIdx ] = sz ) + '%'
+        } else {
+          var sz = this.sizes[ this.dragIdx + 1 ] * ( 1 - delta / nextClientSize )
+          if( sz < 0.01 )         sz = 0
+          if( sz > total - 0.01 ) sz = total
+          prev.style[ this.size ] = ( this.sizes[ this.dragIdx ] += this.sizes[ this.dragIdx + 1 ] - sz ) + '%'
+          next.style[ this.size ] = ( this.sizes[ this.dragIdx + 1 ] = sz ) + '%'
+        }
+        this.lastValue = evt[ this.axis ]
+      },
+      stopDrag( evt ) {
+        this.switch( 'removeEventListener' )
+        this.dragTag = null
+      }
+    } ) )
+  </script>
+</ql-split>

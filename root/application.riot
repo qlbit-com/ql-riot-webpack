@@ -1,0 +1,29 @@
+<application>
+
+  <ql-split sizes={[25,30,25,20]} row>
+    <h2 slot='item1'> {message} </h2>
+    <ql-split sizes={[25,50,25]} slot="item2">
+      <h2 slot='A_1'> aaa </h2>
+      <h2 slot='A_4'> {message} </h2>
+      <h2 slot='Z_7'> ccc </h2>
+    </ql-split>
+    <h2 slot='item3'> ccc </h2>
+    <ql-split sizes={[25,25,50]} slot="item4">
+      <h2 slot='item1'> aaa </h2>
+      <h2 slot='item4'> bbb </h2>
+      <h2 slot='item3'> {message} </h2>
+    </ql-split>
+  </ql-split>
+
+
+  <script>
+    import qlSplit from './components/global/ql-riot/ql-split.riot'
+
+    export default {
+      components: {
+        qlSplit
+      },
+      message : 'drag all borders or or resize window to see results'
+    }
+  </script>
+</application>
