@@ -18,39 +18,16 @@
         this.thisDrag = ( evt ) => { this.drag( evt ) }
         this.thisStopDrag = ( evt ) => { this.stopDrag( evt ) }
 
-        const cssClasses = {
-          '.split-col' : '{ display: flex !important; flex-direction: column !important; width: 100% !important; height: 100% !important }',
-          '.split-row' : '{ display: flex !important; flex-direction: row !important; width: 100% !important; height: 100% !important }',
-          '.split-col > div' : '{ position: relative !important; clear: both !important; overflow: auto !important; width : 100% !important }',
-          '.split-row > div' : '{ position: relative !important; clear: both !important; overflow: auto !important; height: 100% !important }',
-          '.split-col > div:nth-child(even)' : '{ background: lightgray; cursor: ns-resize !important; height: 5px !important }',
-          '.split-row > div:nth-child(even)' : '{ background: lightgray; cursor: ew-resize !important; width : 5px !important }'
-        }
         const tag = 'ql-split'
+        this.injectCSS( tag )
 
-        const cssText = Object.entries( cssClasses ).reduce(
-          ( result, entry ) => result + tag + ' ' + entry[ 0 ] + ',[is="' + tag + '"]' + entry[ 0 ] + entry[ 1 ] , ''
-        )
-        riotAPI.cssManager.add( 'ql-split-css', cssText )
-
-        this.sizes = this.props.sizes || Array( slots.length ).fill( 100.0 / slots.length )
-        while( this.sizes.length < slots.length )
-          this.sizes.push( 0 )
-
-        this.sizes.length = slots.length  //DP: remove extra elements [if any] from sizes array
-
-        var sum = 0.0
-        this.sizes.forEach( val => sum += val );
-        if( !sum )
-          this.sizes.fill( 100.0 / slots.length )
-        else if( 100.0 != sum )
-          this.sizes.forEach( ( val, idx ) => this.sizes[ idx ] = ( val / sum ) * 100.0 )
+        this.sizes = this.normalizeSizes( this.props.sizes )
 
         this.el = el
         const holder = document.createElement( 'div' )
         const holderClass = [ 'split-col', 'split-row' ][ orientIndex ]
         holder.classList.add( holderClass )
-        if( undefined!==this.el.content ) {
+        if( this.el.tagName.toLowerCase() === 'template' ) {
           holder.setAttribute( 'is', tag ) //DP: for css to match in scope of template element
           this.el.parentNode.insertBefore( holder, this.el )
           this.el.parentNode.removeChild( this.el )
@@ -79,6 +56,19 @@
         this.templates.forEach(
           template => template.mount( context )
         );
+      },
+      normalizeSizes( sizes ) {
+        if( !sizes ) //DP: equal distribution if not provided
+          return Array( slots.length ).fill( 100.0 / slots.length )
+        const result = [...sizes]
+        if( result.length > slots.length ) //DP: remove extra elements [if any] from sizes array
+          result.length = slots.length
+        const sum = result.reduce( ( res, val ) => res + val, 0.0 )
+        result.forEach( ( val, idx ) => result[ idx ] = ( val / sum ) * 100.0 )
+        const delta = sum > 100.0 ? 0 : ( 100.0 - sum )/( slots.length - result.length )
+        while( result.length < slots.length )
+          result.push( delta )
+        return result
       },
       update( context ) {
         this.templates.forEach(
@@ -113,6 +103,7 @@
         }
         const delta = evt[ this.axis ] - this.lastValue
         const total = this.sizes[ this.dragIdx ] + this.sizes[ this.dragIdx + 1 ]
+        //DP: use bigger denominator get correct division results when adjusting sizes
         if( prevClientSize > nextClientSize ) {
           var sz = this.sizes[ this.dragIdx ] * ( 1 + delta / prevClientSize )
           if( sz < 0.01 )         sz = 0
@@ -131,6 +122,20 @@
       stopDrag( evt ) {
         this.switch( 'removeEventListener' )
         this.dragTag = null
+      },
+      injectCSS( tag ) {
+        const cssClasses = {
+          '.split-col' : '{ display: flex !important; flex-direction: column !important; width: 100% !important; height: 100% !important }',
+          '.split-row' : '{ display: flex !important; flex-direction: row !important; width: 100% !important; height: 100% !important }',
+          '.split-col > div' : '{ position: relative !important; clear: both !important; overflow: auto !important; width : 100% !important }',
+          '.split-row > div' : '{ position: relative !important; clear: both !important; overflow: auto !important; height: 100% !important }',
+          '.split-col > div:nth-child(even)' : '{ background: lightgray; cursor: ns-resize !important; height: 5px !important }',
+          '.split-row > div:nth-child(even)' : '{ background: lightgray; cursor: ew-resize !important; width : 5px !important }'
+        }
+        const cssText = Object.entries( cssClasses ).reduce(
+          ( result, [ key, value ] ) => result + tag + ' ' + key + ',[is="' + tag + '"] ' + key + ',[is="' + tag + '"]' + key + value , ''
+        )
+        riotAPI.cssManager.add( tag + '-css', cssText )
       }
     } ) )
   </script>
