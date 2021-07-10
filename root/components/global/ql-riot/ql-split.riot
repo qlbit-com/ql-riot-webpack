@@ -38,11 +38,13 @@
   </style>
 
   <script>
-    export default {
-      onBeforeMount() {
-        const parentSymbol = Object.getOwnPropertySymbols( this )[ 0 ] //DP: should be Symbol(parent)
-        this.context = this[ parentSymbol ]
+    import { __ as riotAPI } from 'riot'
 
+    export default {
+      get context() {
+        return this[ riotAPI.globals.PARENT_KEY_SYMBOL ]
+      },
+      onBeforeMount() {
         const orientIndex = undefined === this.props.row ? 0 : 1
         this.splitClass = [ 'ql-split-col', 'ql-split-row' ][ orientIndex ]
 

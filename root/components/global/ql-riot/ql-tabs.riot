@@ -69,10 +69,11 @@
   </style>
 
   <script>
+    import { __ as riotAPI } from 'riot'
+
     export default {
-      onBeforeMount() {
-        const parentSymbol = Object.getOwnPropertySymbols( this )[ 0 ] //DP: should be Symbol(parent)
-        this.context = this[ parentSymbol ]
+      get context() {
+        return this[ riotAPI.globals.PARENT_KEY_SYMBOL ]
       }
     }
   </script>
