@@ -1,0 +1,43 @@
+<ql-button>
+  <button class="button" onclick={props.action}>
+    <i class={ imageClass[ props.image ] }/><!-- fa-2x for size-->
+  </button>
+
+  <style>
+    .button {
+      height: 2em;
+      width: 2em;
+      padding: 0px;
+      margin: 0px;
+      color: white;
+      background-color: lightgray;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 1em;
+      cursor: pointer;
+      border: 0px;
+    }
+    .button:hover {
+      background-color: rgb(170, 165, 255);
+    }
+    .button:active {
+      background-color: gray;
+    }
+  </style>
+
+  <script>
+    export default {
+      imageClass : {
+        open  : "fas fa-folder-open",
+        save  : "fas fa-save",
+
+        run   : "fas fa-play",        //"far fa-play-circle",
+        pause : "fas fa-pause",       //"far fa-pause-circle",
+        stop  : "fas fa-stop",        //"far fa-stop-circle",
+
+        user  : "fas fa-user"        //"far fa-user-circle"
+      }
+    }
+  </script>
+</ql-button>

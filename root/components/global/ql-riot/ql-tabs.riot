@@ -1,0 +1,79 @@
+<ql-tabs>
+  <div class='tab-container'>
+    <div class='tab' each={ ( slot, index ) in slots }>
+      <input type='radio' id='{ name }-{ index }' name={ name } checked/>
+      <label for='{ name }-{ index }'>{ slot.id }</label>
+      <div class='content'>
+        <template is='ql-slot' slt={ slot } ctx={ context }/>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .tab-container {
+      position: relative;
+      height: 100%;
+      clear: both;
+      background: gainsboro;
+      display: flex !important;
+      flex-direction: row !important;
+    }
+    .tab {
+      float: left;
+    }
+    .tab label {
+      background: #eee;
+      padding: 0.1em 0.7em 0.2em 0.3em;
+      position: relative;
+      display: inline-block;
+      left: 0.3em;
+      white-space: nowrap;
+      -webkit-clip-path: polygon(100% 0, 90% 0, 100% 100%, 0 100%, 0.5% 0);
+      clip-path: polygon(100% 0, 90% 0, 100% 100%, 0 100%, 0.5% 0);
+    }
+    .tab [type="radio"] {
+      opacity: 0;
+      display: none;
+    }
+    .content {
+      position: absolute;
+      top: 1.4em;
+      left: 0;
+      background: white;
+      right: 0;
+      bottom: 0;
+      border: 1px solid #ccc;
+      overflow: hidden;
+    }
+    .content > * {
+      display: none !important;
+      height: 0px !important;
+      width: 0px !important;
+    }
+    [type="radio"]:focus ~ label {
+      ouline: 2px solid blue;
+    }
+    [type="radio"]:checked ~ label {
+      background: white;
+      border-bottom: 1px solid white;
+      z-index: 2;
+    }
+    [type="radio"]:checked ~ label ~ .content {
+      z-index: 1;
+    }
+    [type="radio"]:checked ~ label ~ .content > * {
+      display: block !important;
+      height: 100% !important;
+      width: 100% !important;
+    }
+  </style>
+
+  <script>
+    export default {
+      onBeforeMount() {
+        const parentSymbol = Object.getOwnPropertySymbols( this )[ 0 ] //DP: should be Symbol(parent)
+        this.context = this[ parentSymbol ]
+      }
+    }
+  </script>
+</ql-tabs>

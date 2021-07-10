@@ -1,0 +1,66 @@
+<ql-main>
+  <div if={ menuHeight > 0 } style='--height: {menuHeight}em' class='ql-main-menu ql-main-content'>
+    <slot name='menu'/>
+  </div>
+  <div if={ toolbarHeight > 0 } style='--height: {toolbarHeight}em' class='ql-main-toolbar ql-main-content'>
+    <slot name='toolbar'/>
+  </div>
+  <div if={ toolbarHeight > 0 } class='ql-main-divider'/>
+  <div style='--height: {calcHeight}em; --dividerHeight: {dividerHeight}px' class='ql-main-calc ql-main-content'>
+    <slot name='main'/>
+  </div>
+  <div if={ statusHeight > 0 } class='ql-main-divider'/>
+  <div if={ statusHeight > 0 } style='--height: {statusHeight}em' class='ql-main-status ql-main-content'>
+    <slot name='status'/>
+  </div>
+
+  <style>
+    .ql-main-menu {
+      width: 100% !important;
+      height: var( --height ) !important;
+      background: lightgray;
+    }
+    .ql-main-divider {
+      width: 100% !important;
+      height: 1px !important;
+      background: gray !important;
+    }
+    .ql-main-toolbar {
+      width: 100% !important;
+      height: var( --height ) !important;
+      background: lightgray;
+    }
+    .ql-main-calc {
+      width: 100% !important;
+      height: -webkit-calc( 100% - var( --height ) - var( --dividerHeight ) ) !important;
+      height: -moz-calc( 100% - var( --height ) - var( --dividerHeight ) ) !important;
+      height: calc( 100% - var( --height ) - var( --dividerHeight ) ) !important;
+    }
+    .ql-main-status {
+      width: 100% !important;
+      height: var( --height ) !important;
+      background: lightgray;
+    }
+    .ql-main-content > * {
+      height: 100% !important;
+    }
+  </style>
+
+  <script>
+    export default {
+      onBeforeMount() {
+        this.onBeforeUpdate()
+      },
+      onBeforeUpdate() {
+        const slotMap = this.slots.reduce( ( res, slot ) => { res[ slot.id ] = slot; return res; }, {} )
+        const height = this.props.height || {}
+        const getHeight = ( name, defVal ) => slotMap[ name ] && ( height[ name ] === undefined ? defVal : height[ name ] ) || 0
+        this.menuHeight = getHeight( 'menu', 3 )
+        this.toolbarHeight = getHeight( 'toolbar', 2 )
+        this.statusHeight = getHeight( 'status', 1.2 )
+        this.calcHeight = this.menuHeight + this.toolbarHeight + this.statusHeight
+        this.dividerHeight = ( this.toolbarHeight ? 1 : 0 ) + ( this.statusHeight ? 1 : 0 )
+      }
+    }
+  </script>
+</ql-main>

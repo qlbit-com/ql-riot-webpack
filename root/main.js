@@ -1,10 +1,10 @@
 import '@riotjs/hot-reload'
 import { component } from 'riot'
 import application from './application.riot'
-import registerGlobalComponents from './register-global-components'
+import registerComponents from './register-components'
 
 // register
-registerGlobalComponents()
+registerComponents()
 
 // mount the root tag
 component( application )( document.body, {

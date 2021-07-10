@@ -1,0 +1,23 @@
+<!--
+-->
+<ql-textarea>
+  <textarea class='ql-textarea'></textarea>
+  <style>
+    .ql-textarea {
+      width: 100% !important;
+      height: 100% !important;
+      padding: 5px !important;
+/*      border: 0px !important;*/
+    }
+  </style>
+  <script>
+    export default {
+      onBeforeMount() {
+        this.props.delegate[ this.props.context ] = {
+          'get' : () => this.root.firstChild.value,
+          'set' : ( value ) => this.root.firstChild.value = value,
+        }
+      }
+    }
+  </script>
+</ql-textarea>

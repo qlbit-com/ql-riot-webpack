@@ -1,12 +1,50 @@
 <ql-split>
-  <script>
-    import { pure, __ as riotAPI } from 'riot'
-    import getProps from 'riot-pure-props';
+  <div class='{ splitClass } ql-split'>
+    <template each={ ( slot, index ) in slots }>
+      <div style='{ size }: { sizes[ index ] }%;'>
+        <template is='ql-slot' slt={ slot } ctx={ context }/>
+      </div>
+      <div if={ index + 1 < slots.length } onmousedown={ ( evt ) => dragStart( evt, index ) } draggable='false'/>
+    </template>
+  </div>
 
-    export default pure( ( { attributes, slots, props } ) => ( {
-      mount( el, context ) {
-        this.props = getProps( el, context, attributes, props )
+  <style>
+    .ql-split {
+      width: 100% !important;
+      height: 100% !important;
+      display: flex !important;
+    }
+    .ql-split-col {
+      flex-direction: column !important
+    }
+    .ql-split-row {
+      flex-direction: row !important
+    }
+    .ql-split > div {
+      position: relative !important;
+      clear: both !important;
+      overflow: auto !important
+    }
+    .ql-split-col > div:nth-child(even) {
+      background: lightgray;
+      cursor: ns-resize !important;
+      height: 5px !important
+    }
+    .ql-split-row > div:nth-child(even) {
+      background: lightgray;
+      cursor: ew-resize !important;
+      width : 5px !important
+    }
+  </style>
+
+  <script>
+    export default {
+      onBeforeMount() {
+        const parentSymbol = Object.getOwnPropertySymbols( this )[ 0 ] //DP: should be Symbol(parent)
+        this.context = this[ parentSymbol ]
+
         const orientIndex = undefined === this.props.row ? 0 : 1
+        this.splitClass = [ 'ql-split-col', 'ql-split-row' ][ orientIndex ]
 
         const orient = [
           { size : 'height', clientSize : 'clientHeight', axis : 'y' } ,
@@ -15,74 +53,30 @@
 
         Object.assign( this, orient )
         this.disableSelect = ( evt ) => { evt.preventDefault() }
-        this.thisDrag = ( evt ) => { this.drag( evt ) }
-        this.thisStopDrag = ( evt ) => { this.stopDrag( evt ) }
-
-        const tag = 'ql-split'
-        this.injectCSS( tag )
 
         this.sizes = this.normalizeSizes( this.props.sizes )
-
-        this.el = el
-        const holder = document.createElement( 'div' )
-        const holderClass = [ 'split-col', 'split-row' ][ orientIndex ]
-        holder.classList.add( holderClass )
-        if( this.el.tagName.toLowerCase() === 'template' ) {
-          holder.setAttribute( 'is', tag ) //DP: for css to match in scope of template element
-          this.el.parentNode.insertBefore( holder, this.el )
-          this.el.parentNode.removeChild( this.el )
-        } else {
-          this.el.appendChild( holder )
-        }
-
-        this.templates = slots.flatMap( ( slot, slotIndex ) => {
-          const container = document.createElement( 'div' )
-          container.innerHTML = slot.html
-
-          const template = slot.bindings.map(
-            binding => riotAPI.DOMBindings.createBinding( container, binding )
-          );
-          container.style[ this.size ] = this.sizes[ slotIndex ] + '%'
-          holder.appendChild( container );
-          if( slotIndex + 1 < slots.length ) {
-            const gutter = document.createElement( 'div' )
-            gutter.onmousedown = ( evt ) => { this.dragStart( evt, slotIndex ) }
-            gutter.draggable = false
-            holder.appendChild( gutter )
-          }
-          return template
-        } );
-
-        this.templates.forEach(
-          template => template.mount( context )
-        );
       },
       normalizeSizes( sizes ) {
         if( !sizes ) //DP: equal distribution if not provided
-          return Array( slots.length ).fill( 100.0 / slots.length )
+          return Array( this.slots.length ).fill( 100.0 / this.slots.length )
         const result = [...sizes]
-        if( result.length > slots.length ) //DP: remove extra elements [if any] from sizes array
-          result.length = slots.length
+        if( result.length > this.slots.length ) //DP: remove extra elements [if any] from sizes array
+          result.length = this.slots.length
         const sum = result.reduce( ( res, val ) => res + val, 0.0 )
         result.forEach( ( val, idx ) => result[ idx ] = ( val / sum ) * 100.0 )
-        const delta = sum > 100.0 ? 0 : ( 100.0 - sum )/( slots.length - result.length )
-        while( result.length < slots.length )
+        const delta = sum > 100.0 ? 0 : ( 100.0 - sum )/( this.slots.length - result.length )
+        while( result.length < this.slots.length )
           result.push( delta )
         return result
-      },
-      update( context ) {
-        this.templates.forEach(
-          template => template.update( context )
-        )
       },
       switch( action ) {
         const winListener = window[ action ]
         winListener( 'selectstart', this.disableSelect )
-        winListener( 'mousemove', this.thisDrag )
-        winListener( 'touchmove', this.thisDrag )
-        winListener( 'mouseup', this.thisStopDrag )
-        winListener( 'touchend', this.thisStopDrag )
-        winListener( 'touchcancel', this.thisStopDrag )
+        winListener( 'mousemove', this.drag )
+        winListener( 'touchmove', this.drag )
+        winListener( 'mouseup', this.stopDrag )
+        winListener( 'touchend', this.stopDrag )
+        winListener( 'touchcancel', this.stopDrag )
       },
       dragStart( evt, idx ) {
         if( this.dragTag )
@@ -91,6 +85,7 @@
         this.dragIdx = idx
         this.lastValue = evt[ this.axis ]
         this.switch( 'addEventListener' )
+        document.body.style.pointerEvents = 'none' //DP: to prevent mouse event hijacked by iframe\embed\etc
       },
       drag( evt ) {
         const prev = this.dragTag.previousElementSibling
@@ -122,21 +117,8 @@
       stopDrag( evt ) {
         this.switch( 'removeEventListener' )
         this.dragTag = null
-      },
-      injectCSS( tag ) {
-        const cssClasses = {
-          '.split-col' : '{ display: flex !important; flex-direction: column !important; width: 100% !important; height: 100% !important }',
-          '.split-row' : '{ display: flex !important; flex-direction: row !important; width: 100% !important; height: 100% !important }',
-          '.split-col > div' : '{ position: relative !important; clear: both !important; overflow: auto !important; width : 100% !important }',
-          '.split-row > div' : '{ position: relative !important; clear: both !important; overflow: auto !important; height: 100% !important }',
-          '.split-col > div:nth-child(even)' : '{ background: lightgray; cursor: ns-resize !important; height: 5px !important }',
-          '.split-row > div:nth-child(even)' : '{ background: lightgray; cursor: ew-resize !important; width : 5px !important }'
-        }
-        const cssText = Object.entries( cssClasses ).reduce(
-          ( result, [ key, value ] ) => result + tag + ' ' + key + ',[is="' + tag + '"] ' + key + ',[is="' + tag + '"]' + key + value , ''
-        )
-        riotAPI.cssManager.add( tag + '-css', cssText )
+        document.body.style.pointerEvents = 'auto' //DP: to release normal pointer events; see dragStart() above
       }
-    } ) )
+    }
   </script>
 </ql-split>
