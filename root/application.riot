@@ -175,6 +175,7 @@
             title : 'Document',
             menu  : [
               { title  : 'Create new', action : this.createNewDocument },
+              { title  : 'Save',       action : ()=>{ this.state.actions.run( this.state.document ) } }
             ]
           },
           {
