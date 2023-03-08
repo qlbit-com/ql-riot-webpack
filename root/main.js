@@ -7,6 +7,4 @@ import registerComponents from './register-components'
 registerComponents()
 
 // mount the root tag
-component( application )( document.body, {
-  title: 'Hello world!'
-} )
+component( application )( document.body )

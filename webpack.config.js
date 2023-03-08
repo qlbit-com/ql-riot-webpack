@@ -7,10 +7,9 @@ module.exports = {
   entry: './root/main.js',
   output: {
     path: path.resolve(__dirname, 'root'),
-//    publicPath: '/root/',
     filename: 'js/bundle.js'
   },
-  devtool: 'inline',
+  devtool: 'source-map',
   module: {
     rules: [
       {
@@ -26,7 +25,7 @@ module.exports = {
     ]
   },
   devServer: {
-    contentBase: path.join(__dirname, 'root'),
+    static: path.join(__dirname, 'root'),
     proxy: {
       '/api': {
         target: 'http://localhost:8080',

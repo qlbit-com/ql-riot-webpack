@@ -1,48 +1,28 @@
 <ql-main>
-  <div if={ menuHeight > 0 } style='--height: {menuHeight}em' class='ql-main-menu ql-main-content'>
+  <div if={ height.menu > 0 } style='height: {height.menu}em' class='ql-main-section'>
     <slot name='menu'/>
   </div>
-  <div if={ toolbarHeight > 0 } style='--height: {toolbarHeight}em' class='ql-main-toolbar ql-main-content'>
+  <div if={ height.toolbar > 0 } style='height: {height.toolbar}em' class='ql-main-section'>
     <slot name='toolbar'/>
   </div>
-  <div if={ toolbarHeight > 0 } class='ql-main-divider'/>
-  <div style='--height: {calcHeight}em; --dividerHeight: {dividerHeight}px' class='ql-main-calc ql-main-content'>
+  <div if={ height.toolbar > 0 } class='ql-main-divider'/>
+  <div style={mainStyle} class='ql-main-calc ql-main-content'>
     <slot name='main'/>
   </div>
-  <div if={ statusHeight > 0 } class='ql-main-divider'/>
-  <div if={ statusHeight > 0 } style='--height: {statusHeight}em' class='ql-main-status ql-main-content'>
+  <div if={ height.status > 0 } class='ql-main-divider'/>
+  <div if={ height.status > 0 } style='height: {height.status}em' class='ql-main-section'>
     <slot name='status'/>
   </div>
 
   <style>
-    .ql-main-menu {
+    .ql-main-section {
       width: 100% !important;
-      height: var( --height ) !important;
-      background: lightgray;
+      background: lightgray !important;
     }
     .ql-main-divider {
       width: 100% !important;
       height: 1px !important;
       background: gray !important;
-    }
-    .ql-main-toolbar {
-      width: 100% !important;
-      height: var( --height ) !important;
-      background: lightgray;
-    }
-    .ql-main-calc {
-      width: 100% !important;
-      height: -webkit-calc( 100% - var( --height ) - var( --dividerHeight ) ) !important;
-      height: -moz-calc( 100% - var( --height ) - var( --dividerHeight ) ) !important;
-      height: calc( 100% - var( --height ) - var( --dividerHeight ) ) !important;
-    }
-    .ql-main-status {
-      width: 100% !important;
-      height: var( --height ) !important;
-      background: lightgray;
-    }
-    .ql-main-content > * {
-      height: 100% !important;
     }
   </style>
 
@@ -52,14 +32,14 @@
         this.onBeforeUpdate()
       },
       onBeforeUpdate() {
-        const slotMap = this.slots.reduce( ( res, slot ) => { res[ slot.id ] = slot; return res; }, {} )
-        const height = this.props.height || {}
-        const getHeight = ( name, defVal ) => slotMap[ name ] && ( height[ name ] === undefined ? defVal : height[ name ] ) || 0
-        this.menuHeight = getHeight( 'menu', 3 )
-        this.toolbarHeight = getHeight( 'toolbar', 2 )
-        this.statusHeight = getHeight( 'status', 1.2 )
-        this.calcHeight = this.menuHeight + this.toolbarHeight + this.statusHeight
-        this.dividerHeight = ( this.toolbarHeight ? 1 : 0 ) + ( this.statusHeight ? 1 : 0 )
+        const def = { menu: 3, toolbar: 2, status: 1.2 }
+        const hght = this.props.height || {}
+        const calcHeights = ( res, slot ) => { res[ slot.id ] = hght[ slot.id ] || def[ slot.id ] || 0; return res; }
+        this.height = this.slots.reduce( calcHeights, {} )
+        const calcHeight = this.height.menu + this.height.toolbar + this.height.status
+        const dividerHeight = ( this.height.toolbar > 0 ? 1 : 0 ) + ( this.height.status > 0 ? 1 : 0 )
+        const mainHeight = `calc( 100% - ${calcHeight}em - ${dividerHeight}px )`
+        this.mainStyle = `height: -webkit-${mainHeight}; height: -moz-${mainHeight}; height: ${mainHeight};`
       }
     }
   </script>

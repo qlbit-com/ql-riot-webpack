@@ -1,8 +1,8 @@
 <ql-tabs>
   <div class='tab-container'>
     <div class='tab' each={ ( slot, index ) in slots }>
-      <input type='radio' id='{ name }-{ index }' name={ name } checked/>
-      <label for='{ name }-{ index }'>{ slot.id }</label>
+      <input type='radio' id='{ props.name }-{ index }' name={ props.name } checked/>
+      <label for='{ props.name }-{ index }'>{ slot.id }</label>
       <div class='content'>
         <template is='ql-slot' slt={ slot } ctx={ context }/>
       </div>
@@ -17,21 +17,23 @@
       background: gainsboro;
       display: flex !important;
       flex-direction: row !important;
+      overflow: hidden;
     }
     .tab {
       float: left;
     }
-    .tab label {
+    .tab > input + label {
+      cursor: pointer;
       background: #eee;
       padding: 0.1em 0.7em 0.2em 0.3em;
       position: relative;
       display: inline-block;
       left: 0.3em;
       white-space: nowrap;
-      -webkit-clip-path: polygon(100% 0, 90% 0, 100% 100%, 0 100%, 0.5% 0);
-      clip-path: polygon(100% 0, 90% 0, 100% 100%, 0 100%, 0.5% 0);
+      -webkit-clip-path: polygon(100% 0, -webkit-calc( 100% - 0.5em ) 0, 100% 100%, 0 100%, 0 0);
+      clip-path: polygon(100% 0, calc( 100% - 0.5em ) 0, 100% 100%, 0 100%, 0 0);
     }
-    .tab [type="radio"] {
+    .tab > input {
       opacity: 0;
       display: none;
     }
@@ -50,18 +52,21 @@
       height: 0px !important;
       width: 0px !important;
     }
-    [type="radio"]:focus ~ label {
-      ouline: 2px solid blue;
+    .tab > input + label:hover {
+      background-color: rgb(170, 165, 255);
     }
-    [type="radio"]:checked ~ label {
+    .tab > input:checked + label:hover {
+      background-color: rgb(170, 165, 255);
+    }
+    .tab > input:checked + label {
       background: white;
       border-bottom: 1px solid white;
       z-index: 2;
     }
-    [type="radio"]:checked ~ label ~ .content {
+    .tab > input:checked + label + .content {
       z-index: 1;
     }
-    [type="radio"]:checked ~ label ~ .content > * {
+    .tab > input:checked + label + .content > * {
       display: block !important;
       height: 100% !important;
       width: 100% !important;

@@ -1,5 +1,5 @@
 import { register } from 'riot'
-import { basename } from 'path'
+const basename = (path, extension = '') => path.split('/').reverse()[0].replace(extension, '')
 
 export default () => {
 
@@ -9,10 +9,9 @@ export default () => {
       const component = context( path )
 
       register( name, component.default )
-    })
+    } )
   }
 
   reg( require.context( './components/global/', true, /[a-zA-Z0-9-]+\.riot/ ) )
-//  reg( require.context( './components/local/', true, /[a-zA-Z0-9-]+\.riot/ ) )
-
+  reg( require.context( './components/local/', true, /[a-zA-Z0-9-]+\.riot/ ) )
 }
