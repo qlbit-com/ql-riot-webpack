@@ -1,5 +1,5 @@
 import { register } from 'riot'
-const basename = (path, extension = '') => path.split('/').reverse()[0].replace(extension, '')
+const basename = ( path, extension = '' ) => path.split( '/' ).pop().replace( extension, '' )
 
 export default () => {
 
