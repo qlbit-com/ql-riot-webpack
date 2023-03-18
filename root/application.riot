@@ -86,8 +86,8 @@
         userinfo  : { username : 'anonymous' }
       },
 
-      modal( name, spec ) {
-        const el = document.createElement( name )
+      modal( tagName, spec ) {
+        const el = document.createElement( tagName )
         document.body.appendChild( el )
         //todo: https://stackoverflow.com/questions/50178419/how-can-restrict-the-tab-key-press-only-within-the-modal-popup-when-its-open
         riotMount( el, spec )
