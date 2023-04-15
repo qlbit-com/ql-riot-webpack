@@ -2,7 +2,7 @@
   "name": "ql-riot",
   "version": "0.0.1",
   "description": "RiotJS components",
-  "repository": "https://github.com/qlbit-com/ql-riot",
+  "repository": "https://github.com/qlbit-com/ql-riot-webpack",
   "main": "root/main.js",
   "author": "Dmitriy Pichugin",
   "license": "MIT",
